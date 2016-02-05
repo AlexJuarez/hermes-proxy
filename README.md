@@ -42,6 +42,7 @@ The proxy server once connected accepts the following commands
 |:--|:--|
 | **startup** | start the proxy server with a *config object* see below |
 | **enable** | the proxy will cache traffic and make requests when not cached |
+| **flush** | reset the proxy cache |
 | **disable** | the proxy will only return cached traffic |
 | **exit** | kill the proxy service |
 
