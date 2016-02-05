@@ -48,7 +48,7 @@ function addMiddleware(server) {
     req._remoteAddress = getIP(req);
 
     function logRequest() {
-      if (!res.header) {
+      if (!res.header || !res._startAt) {
         return;
       }
 
