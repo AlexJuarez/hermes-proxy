@@ -16,7 +16,7 @@ function Run() {
 
   program
     .command('start')
-    .option('-p, --http-port <n>',
+    .option('-p, --port <n>',
       'http port for the proxy',
       parseInt)
     .option('--log-level <level>',
@@ -25,7 +25,7 @@ function Run() {
       'INFO')
     .action((options) => {
       const config = {
-        httpPort: options.httpPort
+        httpPort: options.port
       };
 
       log4js.setGlobalLogLevel(options.logLevel);
@@ -46,7 +46,7 @@ function Run() {
       'INFO')
     .action((options) => {
       const config = {
-        port: options.port || 0
+        port: options.port
       };
       log4js.setGlobalLogLevel(options.logLevel);
 
