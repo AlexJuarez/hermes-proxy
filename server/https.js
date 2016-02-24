@@ -14,7 +14,7 @@ function createServer(app, config) {
   return https.createServer({
     key: sslkey,
     cert: sslcert
-  }, app).listen(port);
+  }, app).listen(port || 0);
 }
 
 module.exports = createServer;

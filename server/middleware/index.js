@@ -1,6 +1,6 @@
 'use strict';
 
-const log = require('./../logger')('proxy-request');
+const log = require('./../../logger')('proxy-request');
 const onFinished = require('on-finished');
 const onHeaders = require('on-headers');
 const chalk = require('chalk');

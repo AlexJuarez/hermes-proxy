@@ -5,6 +5,7 @@ const EventEmitter = require('events');
 const RequestStore = require('./../store/request');
 const https = require('./https');
 const http = require('./http');
+const Injector = require('./middleware/injector');
 const addRoutes = require('./routes');
 const addMiddleware = require('./middleware');
 const log = require('./../logger')('proxy');
@@ -16,6 +17,7 @@ class Proxy extends EventEmitter {
     this._app = express();
     this._config = config || {};
     this._store = new RequestStore();
+    this._injector = new Injector();
     this._enabled = true;
 
     this.on('error', (err) => {
@@ -27,24 +29,42 @@ class Proxy extends EventEmitter {
   }
 
   startup() {
-    this._server = http(this._app, this._config);
+    // Pick a port at random that's open
     this._https_server = https(this._app, this._config);
-    log.debug(`proxy server ready at ` +
-      `localhost:${this._config.httpPort}.`);
 
-    this.emit('ready');
+    // Read that port and pass it into the http setup
+    const http_config = {
+      httpPort: this._config.httpPort,
+      httpsPort: this._https_server.address().port
+    };
+
+    this._server = http(this._app, http_config);
+    const port = this._server.address().port;
+
+    log.debug(`proxy server ready at ` +
+      `localhost:${port}.`);
+
+    this.emit('ready', {port});
   }
 
   flush() {
     this._store = new RequestStore();
   }
 
-  enable() {
-    this._enabled = true;
+  setRecordMode() {
+    this._cacheOnly = false;
   }
 
-  disable() {
-    this._enabled = false;
+  setReplayMode() {
+    this._cacheOnly = true;
+  }
+
+  enableInjection() {
+    this._injector.enable();
+  }
+
+  disableInjector() {
+    this._injector.disable();
   }
 
   close() {

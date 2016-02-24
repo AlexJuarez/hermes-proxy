@@ -11,21 +11,33 @@ request = request.defaults({
 
 process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
 
+function setHeaders(res, headers) {
+  Object.keys(headers).forEach((header) => {
+    res.setHeader(header, headers[header]);
+  });
+}
+
 function addRoutes(server) {
   const app = server._app;
   const store = server._store;
+  const injector = server._injector;
+
+  function sendCachedResponse(req, res) {
+    const resp = store.get(req);
+    const injected = injector.inject(resp.resp.headers, resp.resp.body);
+    const headers = injected.headers;
+    const body = injected.body;
+
+    setHeaders(res, headers);
+    res.end(body);
+  }
 
   app.all('*', function(req, res) {
     if (store.hasKey(req)) {
-      const resp = store.get(req);
-      Object.keys(resp.resp.headers).forEach((header) => {
-        res.setHeader(header, resp.resp.headers[header]);
-      });
-
-      res.end(resp.resp.body);
+      sendCachedResponse(req, res);
     } else {
-      if (!server._enabled) {
-        log.debug(`${req.url} not found in cache`);
+      if (server._cacheOnly) {
+        log.warn(`${req.url} not found in cache`);
         res.status(404);
         res.end('page not found in cache');
       } else {
@@ -40,7 +52,14 @@ function addRoutes(server) {
         var r = request[method](u,
           (err, resp, buffer) => {
             if (!err) {
-              store.set(req, buffer, resp);
+              if (resp.statusCode === 200) {
+                store.set(req, buffer, resp);
+                sendCachedResponse(req, res);
+              } else {
+                res.status(resp.statusCode);
+                setHeaders(res, resp.headers);
+                res.end(buffer);
+              }
             }
           })
           .on('error', function(err) {
@@ -48,8 +67,7 @@ function addRoutes(server) {
           });
 
         req
-          .pipe(r)
-          .pipe(res);
+          .pipe(r);
       }
     }
   });

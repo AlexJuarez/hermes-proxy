@@ -19,17 +19,13 @@ function Run() {
     .option('-p, --http-port <n>',
       'http port for the proxy',
       parseInt)
-    .option('-s, --https-port <n>',
-      'https port for the proxy',
-      parseInt)
     .option('--log-level <level>',
       `change the current log level - ${loglevels.join(', ')}`,
       /^(OFF|ERROR|WARN|INFO|DEBUG)$/i,
-      'DEBUG')
+      'INFO')
     .action((options) => {
       const config = {
-        httpPort: options.httpPort,
-        httpsPort: options.httpsPort
+        httpPort: options.httpPort
       };
 
       log4js.setGlobalLogLevel(options.logLevel);
@@ -41,28 +37,17 @@ function Run() {
   program
     .command('managed')
     .description('runs a proxy client with a managing server')
-    .option('-P, --protocol <value>',
-      'protocol for the proxy manager, defaults to http',
-      /^(http|https)$/i)
     .option('-p, --port <n>',
       'port for the proxy manager',
       parseInt)
-    .option('-d, --domain <value>',
-      'domain for the proxy manager, defaults to localhost')
-    .option('--no-retry',
-      'do not retry if the connection fails')
     .option('--log-level <level>',
       `change the current log level - ${loglevels.join(', ')}`,
       /^(OFF|ERROR|WARN|INFO|DEBUG)$/i,
-      'DEBUG')
+      'INFO')
     .action((options) => {
       const config = {
-        port: options.port,
-        protocol: options.protocol,
-        domain: options.domain,
-        retry: options.retry
+        port: options.port || 0
       };
-
       log4js.setGlobalLogLevel(options.logLevel);
 
       new Client(config);
